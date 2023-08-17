@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" defaultCharsetForPropertiesFiles="UTF-8">
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/org/satal/deleter/controllers/DeleterController.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/org/satal/deleter/views/RenameMenuTreeCell.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/org/satal/deleter/views/UserItem.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/org/satal/deleter/views/WindowViewer.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/org/satal/deleter/views/ico/Ico.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/org/satal/deleter/views/ico/icoCatalog/IconLarge.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/org/satal/deleter/views/ico/icoCatalog/IconVer1.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/org/satal/deleter/views/ico/icoCatalog/Large.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/org/satal/deleter/views/ico/icoCatalog/TileElement.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/org/satal/deleter/views/ico/icoDesktop/IcoDesktop.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/org/satal/deleter/views/ico/icoDesktop/InterfaceButton.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/desk" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/ico" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/ico2" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/org/satal/deleter/Deleter-View.fxml" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/org/satal/deleter/style.css" charset="UTF-8" />
+    <file url="PROJECT" charset="windows-1251" />
+  </component>
+</project>
