@@ -25,7 +25,7 @@ public class DeleterApplication extends Application {
         stage.setMinHeight(600);
         stage.setScene(scene);
         stage.setTitle("Satal - deleter");
-        stage.setResizable(true);
+        stage.setResizable(false);
 //        stage.getIcons().add(new Image(String.valueOf((getClass().getResource("cloud.png"))), 137, 84, false, false));
         stage.show();
 

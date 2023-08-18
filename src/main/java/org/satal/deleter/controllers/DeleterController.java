@@ -1,75 +1,91 @@
 package org.satal.deleter.controllers;
 
-import javafx.application.Platform;
-import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
+import javafx.event.EventTarget;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import org.satal.deleter.models.FileWrapper;
-import org.satal.deleter.models.Row;
-import org.satal.deleter.views.WindowViewer;
-import org.satal.deleter.views.ico.icoCatalog.Large;
-import org.satal.deleter.views.ico.icoCatalog.TileElement;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 //public class DeleterController extends WindowViewer implements Initializable {
 public class DeleterController implements Initializable {
+
+    private static Long millInDay = 86400000L;
     public AnchorPane HomeWindow;
     public VBox VBoxHomeWindow;
-    public HBox quickMenu;
-    public VBox leftWindow;
-    public VBox rightWindow;
+    public Pane leftWindow;
+    public Pane rightWindow;
+    public ComboBox<Interval> intervalMenu;
+    public Label directoryLabel;
 
-    private final TableView<Row> table = new TableView<>();
-    private final ObservableList<Row> data = FXCollections.observableArrayList();
+    public Label countLeft;
+    public Label countTotal;
+    public Label countRight;
+    public Button addFileButton;
+    public Button delFileButton;
 
+
+    private final TableView<Row> leftTable = new TableView<>();
+    private final TableView<Row> rightTable = new TableView<>();
+    private final ObservableList<Row> leftData = FXCollections.observableArrayList();
+    private final ObservableList<Row> rightData = FXCollections.observableArrayList();
+    private final ObservableList<Interval> intervals = FXCollections.observableArrayList();
+
+
+    private File currentDirectory;
+    private File[] currentDirectoryFiles;
+    private Date currentDate;
     private DirectoryChooser directoryChooser;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        //Initialise common
         directoryChooser = new DirectoryChooser();
 
+        File temp = new File("\\\\Hp\\dnc");
+        if(temp.exists() && temp.isDirectory()) {
+            currentDirectory = temp;
+            setDirectoryLabel(currentDirectory.getPath());
+            directoryChooser.setInitialDirectory(currentDirectory);
+        }
+        currentDate = new Date();
 
-        TableColumn<Row, String> firstNameCol = new TableColumn<>("Name");
-        firstNameCol.setMinWidth(100);
-        firstNameCol.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+        //Initialise interval
+        initialiseIntervals();
+        intervalMenu.setItems(intervals);
+        intervalMenu.getSelectionModel().select(2);
 
-        TableColumn<Row, String> lastNameCol = new TableColumn<>("Directory");
-        lastNameCol.setMinWidth(300);
-        lastNameCol.setCellValueFactory(new PropertyValueFactory<>("lastName"));
 
-        TableColumn<Row, String> date = new TableColumn<>("Дата");
-        date.setMinWidth(100);
-        date.setCellValueFactory(new PropertyValueFactory<>("date"));
-
-        table.setItems(data);
-        table.getColumns().addAll(firstNameCol, lastNameCol, date);
-
-        leftWindow.getChildren().add(table);
-
+        //Initialise tables
+        initialTable(leftTable, leftData);
+        initialTable(rightTable, rightData);
+        leftWindow.getChildren().add(leftTable);
+        rightWindow.getChildren().add(rightTable);
+        leftTable.setOnMouseClicked(e -> {
+            leftTableClick();
+            offDelFileButton();
+        });
+        rightTable.setOnMouseClicked(e -> {
+            rightTableClick();
+            offAddFileButton();
+        });
 
     }
 
@@ -77,138 +93,315 @@ public class DeleterController implements Initializable {
 
     }
 
-//    @FXML
-//    private Label welcomeText;
-//
-//    @FXML
-//    protected void onHelloButtonClick() {
-//        welcomeText.setText("Welcome to JavaFX Application!");
-//    }
+    public void initialiseIntervals(){
+        LocalDateTime dt = LocalDateTime.ofInstant(currentDate.toInstant(), ZoneId.systemDefault());
+        Interval int3months = new Interval(Date.from(dt.minusMonths(3).atZone(ZoneId.systemDefault()).toInstant()), "3 месяца");
+        Interval int1month = new Interval(Date.from(dt.minusMonths(1).atZone(ZoneId.systemDefault()).toInstant()), "1 месяц");
+        Interval int2weeks = new Interval(Date.from(dt.minusWeeks(2).atZone(ZoneId.systemDefault()).toInstant()), "2 недели");
+        Interval int1week = new Interval(Date.from(dt.minusWeeks(1).atZone(ZoneId.systemDefault()).toInstant()), "1 неделя");
+        Interval int3days = new Interval(Date.from(dt.minusDays(3).atZone(ZoneId.systemDefault()).toInstant()), "3 дня");
+        intervals.addAll(int3months, int1month, int2weeks, int1week, int3days);
+    }
+
+    public void initialTable(TableView<Row> table, ObservableList<Row> data){
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setPrefHeight(720);
+        table.setPrefWidth(450);
+
+        TableColumn<Row, String> nameCol = new TableColumn<>("Имя файла");
+        nameCol.setMinWidth(218);
+        nameCol.setPrefWidth(218);
+        nameCol.setCellValueFactory(new PropertyValueFactory<Row, String>("name"));
+//        TableColumn<Row2, String> oCol = new TableColumn<>("Программа (кратко)");
+//        oCol.setCellValueFactory(new PropertyValueFactory<Row2, String>("oName"));
+//        TableColumn<Row2, String> programCol = new TableColumn<>("Имя программы");
+//        programCol.setCellValueFactory(new PropertyValueFactory<Row2, String>("programName"));
+        TableColumn<Row, Date> dateCol = new TableColumn<>("Дата");
+        dateCol.setMinWidth(115);
+        dateCol.setPrefWidth(115);
+        dateCol.setCellValueFactory(new PropertyValueFactory<Row, Date>("date"));
+        dateCol.setCellFactory(column -> new TableCell<Row, Date>() {
+                    private final SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+                    @Override
+                    protected void updateItem(Date item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if(empty) {
+                            setText(null);
+                        }
+                        else {
+                            this.setText(format.format(item));
+                        }
+                    }
+                }
+        );
+
+        TableColumn<Row, String> oldCol = new TableColumn<>("Возраст файла");
+        oldCol.setMinWidth(115);
+        oldCol.setPrefWidth(115);
+        oldCol.setCellValueFactory(new PropertyValueFactory<Row, String>("old"));
+
+        table.setItems(data);
+        table.getColumns().add(nameCol);
+//        table.getColumns().add(oCol);
+//        table.getColumns().add(programCol);
+        table.getColumns().add(dateCol);
+        table.getColumns().add(oldCol);
+    }
+
+    private void setDirectoryLabel(String str){
+        directoryLabel.setText(str);
+    }
 
     public void findCatalog(MouseEvent mouseEvent) throws IOException {
-//        File dir = directoryChooser.showDialog(HomeWindow.getScene().getWindow());
-        File dir = new File("C:\\Users\\GVoichuk\\Desktop\\WT150");
+        File temp = directoryChooser.showDialog(HomeWindow.getScene().getWindow());
+        if (temp != null){
+            currentDirectory = temp;
+            setDirectoryLabel(currentDirectory.getPath());
+            currentDirectoryFiles = currentDirectory.listFiles();
+            sortFiles();
+        }
+    }
 
+    public void sortFiles() throws IOException {
+        if (currentDirectoryFiles.length != 0){
+            leftData.clear();
+            rightData.clear();
+            BasicFileAttributes atr;
+            for (File f : currentDirectoryFiles){
+                if(f.isFile()){
+                    atr = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
 
+                    Row r = new Row();
+                    r.setName(f.getName());
+                    long oldMillis = atr.creationTime().toMillis();
+                    int oldDay = (int) ((currentDate.getTime() - oldMillis) / millInDay);
+                    Date fileDate = new Date(oldMillis);
+                    r.setDate(fileDate);
+                    r.setOld("" + oldDay + " " + getDay(oldDay));
 
+                    if(fileDate.before(intervalMenu.getSelectionModel().getSelectedItem().getDate())){
+                        rightData.add(r);
+                    } else {
+                        leftData.add(r);
+                    }
+                }
+            }
+            counter();
+        }
+    }
 
-        ArrayList<Row> left = new ArrayList<>();
-        ArrayList<Row> right = new ArrayList<>();
-        ArrayList<FileWrapper> wrappers = new ArrayList<>();
+    public void counter(){
+        countLeft.setText(leftData.size() + " файлов.");
+        countTotal.setText("Всего: " + (leftData.size() + rightData.size()) + " файлов.");
+        countRight.setText(rightData.size() + " файлов.");
+    }
 
-
-
-
-
-
-        BasicFileAttributes atr;
-        File[] ch = dir.listFiles();
-        assert ch != null;
-        for (File f : ch){
-//            Path of = Path.of(dir.toURI());
-            if(f.isFile()){
-//                of.relativize(f.toPath());
-//
-//                right.add((of.relativize(f.toPath())).toFile());
-//                Row row = new Row();
-//                row.setName(f.getName());
-//                row.setFile(f);
-                atr = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
-//                row.setDate(atr.creationTime());
-//                left.add(row);
-
-//                wrappers.add(new FileWrapper(f));
-                data.add(new Row(f.getName(), f.getPath(), atr.creationTime().toMillis()));
-
-
-//                System.out.println(f.getName());
-//                System.out.println(f.getPath());
-
-
+    public String getDay(int d){
+        if (d > 1000){
+            d = d % 1000;
+        }
+        if (d > 100){
+            d = d % 100;
+        }
+        if (d > 10 && d < 20){
+            return "дней";
+        } else {
+            if (d > 10) {
+                d = d % 10;
+            }
+            if (d == 1){
+                return "день";
+            } else if (d > 1 && d < 5) {
+                return "дня";
+            } else {
+                return "дней";
             }
         }
-//        right.forEach(f -> System.out.println(f.getName()));
-//        right.forEach(f -> leftWindow.getItems().add(f));
+    }
 
-//        Path currentPath = dir.toPath();
-//        List<Path> dd = Files.list(currentPath).toList();
-//        Path tt = dd.get(0);
+    public void intervalMenuAction(ActionEvent actionEvent) throws IOException {
+        sortFiles();
+    }
 
-//        BasicFileAttributes atr = Files.readAttributes(tt, BasicFileAttributes.class);
-//        System.out.println(atr.creationTime());
-//        System.out.println(atr.lastAccessTime());
-//        System.out.println(atr.lastModifiedTime());
+    public void readFile(){
+        //                StringBuilder program = new StringBuilder();
+/*                try (BufferedReader br = new BufferedReader(new FileReader(f))){
+                    boolean oNameFlag = false;
+                    boolean programFlag = false;
+                    while (br.ready()){
+                        String s = br.readLine();
+                        if (s.length() > 1){
+                            if (s.charAt(0) == 'O'){
+                                String[] str = s.split(" ");
+                                r.setoName(str[0]);
+                                oNameFlag = true;
+                                if (str.length > 1){
+                                    for (String s1 : str) {
+                                        String s2 = s1.strip();
+                                        if(s2.charAt(0) == '('){
+                                            int n = s2.indexOf(')');
+                                            if (n > 0){
+                                                r.setProgramName(s2.substring(1, n));
+                                                programFlag = true;
+                                            }
+                                        }
+                                    }
+                                }
 
-//        TableView<Row> table = new TableView<>();
-
-//        TableColumn<Row, String> column1 = new TableColumn<>("Имя");
-//        TableColumn<Row, Long> column2 = new TableColumn<>("Дата добавления");
-
-
-//        column1.setCellValueFactory(new PropertyValueFactory<Row, String>("name"));
-//        column2.setCellValueFactory(new PropertyValueFactory<Row, Long>("date"));
-
-
-//        column2.setSortType(TableColumn.SortType.DESCENDING);
-//        column2.setSortable(false);
-
-//        ObservableList<Row> list = FXCollections.observableList(left);
-//        ObservableList<FileWrapper> list = FXCollections.observableList(wrappers);
-//        fileView.setItems(list);
-
-
-//        table.getColumns().addAll(List.of(column1, column2));
-//        table.setItems(list);
-//        leftWindow.getChildren().add(table);
+                            }
+                            if (oNameFlag && s.charAt(0) == '('){
+                                String s1 = s.strip();
+                                if(s1.charAt(0) == '('){
+                                    int n = s1.indexOf(')');
+                                    if (n > 0){
+                                        r.setProgramName(s1.substring(1, n));
+                                        programFlag = true;
+                                    }
+                                }
+                            }
+                        }
+                        if (oNameFlag && programFlag){
+                            break;
+                        }
+                    }
+                }*/
 
 
+/*                char c;
+                boolean flag = false;
+                try (FileReader fr = new FileReader(f)){
+                    while (fr.ready()){
+                        c = (char) fr.read();
+                        if (c == '(' && !flag){
+                            flag = true;
+                        } else if (c == ')' && flag) {
+                            break;
+                        } else if (flag) {
+                            program.append(c);
+                        }
+                    }
+                }*/
+//                r.setProgramName(program.toString());
+    }
 
+    public void leftTableClick() {
+        Row row = leftTable.getSelectionModel().getSelectedItem();
+        if(row != null){
+            addFileButton.setDisable(false);
+        }
+    }
 
-//        https://stackoverflow.com/questions/47484280/format-of-date-in-the-javafx-tableview
+    public void rightTableClick() {
+        Row row = rightTable.getSelectionModel().getSelectedItem();
+        if(row != null){
+            delFileButton.setDisable(false);
+        }
+    }
 
+    public void offAddFileButton(){
+        addFileButton.setDisable(true);
+    }
 
+    public void offDelFileButton(){
+        delFileButton.setDisable(true);
+    }
 
+    public void addButtonEvent(MouseEvent mouseEvent) {
+        Row row = leftTable.getSelectionModel().getSelectedItem();
+        if(row != null){
+            rightData.add(row);
+            leftData.remove(row);
+            counter();
+        }
+    }
 
-
-
-
+    public void delButtonEvent(MouseEvent mouseEvent) {
+        Row row = rightTable.getSelectionModel().getSelectedItem();
+        if(row != null){
+            leftData.add(row);
+            rightData.remove(row);
+            counter();
+        }
     }
 
     public static class Row {
+        private String name;
+        private String oName;
+        private String programName;
+        private Date date;
+        private String old;
 
-        private final SimpleStringProperty firstName;
-        private final SimpleStringProperty lastName;
-        private final SimpleLongProperty date;
-
-        private Row(String fName, String lName, Long date) {
-            this.firstName = new SimpleStringProperty(fName);
-            this.lastName = new SimpleStringProperty(lName);
-            this.date = new SimpleLongProperty(date);
+        public String getName() {
+            return name;
         }
 
-        public String getFirstName() {
-            return firstName.get();
+        public void setName(String name) {
+            this.name = name;
         }
 
-        public SimpleStringProperty firstNameProperty() {
-            return firstName;
-        }
+        public Date getDate() {
 
-        public String getLastName() {
-            return lastName.get();
-        }
-
-        public SimpleStringProperty lastNameProperty() {
-            return lastName;
-        }
-
-        public long getDate() {
-            return date.get();
-        }
-
-        public SimpleLongProperty dateProperty() {
             return date;
+        }
 
+        public String getoName() {
+            return oName;
+        }
+
+        public void setoName(String oName) {
+            this.oName = oName;
+        }
+
+        public void setDate(Date date) {
+            this.date = date;
+        }
+
+        public String getProgramName() {
+            return programName;
+        }
+
+        public void setProgramName(String programName) {
+            this.programName = programName;
+        }
+
+        public String getOld() {
+            return old;
+        }
+
+        public void setOld(String old) {
+            this.old = old;
+        }
+    }
+
+    public static class Interval{
+
+        private Date date;
+        private String interval;
+
+        public Interval(Date date, String interval) {
+            this.date = date;
+            this.interval = interval;
+        }
+
+        public Date getDate() {
+            return date;
+        }
+
+        public void setDate(Date date) {
+            this.date = date;
+        }
+
+        public String getInterval() {
+            return interval;
+        }
+
+        public void setInterval(String interval) {
+            this.interval = interval;
+        }
+
+        @Override
+        public String toString()  {
+            return this.interval;
         }
     }
 }
