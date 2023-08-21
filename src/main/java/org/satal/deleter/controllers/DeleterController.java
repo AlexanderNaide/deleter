@@ -8,6 +8,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
@@ -24,7 +26,6 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.ResourceBundle;
 
-//public class DeleterController extends WindowViewer implements Initializable {
 public class DeleterController implements Initializable {
 
     private static Long millInDay = 86400000L;
@@ -34,7 +35,6 @@ public class DeleterController implements Initializable {
     public Pane rightWindow;
     public ComboBox<Interval> intervalMenu;
     public Label directoryLabel;
-
     public Label countLeft;
     public Label countTotal;
     public Label countRight;
@@ -53,17 +53,20 @@ public class DeleterController implements Initializable {
     private File[] currentDirectoryFiles;
     private Date currentDate;
     private DirectoryChooser directoryChooser;
+    private DirectoryChooser removeDirectoryChooser;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         //Initialise common
         directoryChooser = new DirectoryChooser();
+        removeDirectoryChooser = new DirectoryChooser();
 
         File temp = new File("\\\\Hp\\dnc");
         if(temp.exists() && temp.isDirectory()) {
             currentDirectory = temp;
             setDirectoryLabel(currentDirectory.getPath());
             directoryChooser.setInitialDirectory(currentDirectory);
+            removeDirectoryChooser.setInitialDirectory(currentDirectory);
         }
         currentDate = new Date();
 
@@ -76,6 +79,16 @@ public class DeleterController implements Initializable {
         //Initialise tables
         initialTable(leftTable, leftData);
         initialTable(rightTable, rightData);
+        leftTable.setOnKeyPressed((e) -> {
+            if(e.getCode().toString().equals("RIGHT")){
+                addButtonEvent();
+            }
+        });
+        rightTable.setOnKeyPressed((e) -> {
+            if(e.getCode().toString().equals("LEFT")){
+                delButtonEvent();
+            }
+        });
         leftWindow.getChildren().add(leftTable);
         rightWindow.getChildren().add(rightTable);
         leftTable.setOnMouseClicked(e -> {
@@ -86,6 +99,8 @@ public class DeleterController implements Initializable {
             rightTableClick();
             offAddFileButton();
         });
+
+        // удобный сайт с иконками https://icons8.ru/icon/set/%D0%BF%D0%B5%D1%80%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D0%B8%D1%82%D1%8C-%D0%B2-%D1%81%D0%BF%D0%B8%D1%81%D0%BE%D0%BA/fluency
 
     }
 
@@ -158,6 +173,7 @@ public class DeleterController implements Initializable {
             currentDirectory = temp;
             setDirectoryLabel(currentDirectory.getPath());
             currentDirectoryFiles = currentDirectory.listFiles();
+            removeDirectoryChooser.setInitialDirectory(currentDirectory);
             sortFiles();
         }
     }
@@ -178,7 +194,7 @@ public class DeleterController implements Initializable {
                     Date fileDate = new Date(oldMillis);
                     r.setDate(fileDate);
                     r.setOld("" + oldDay + " " + getDay(oldDay));
-
+                    r.setFile(f);
                     if(fileDate.before(intervalMenu.getSelectionModel().getSelectedItem().getDate())){
                         rightData.add(r);
                     } else {
@@ -197,6 +213,12 @@ public class DeleterController implements Initializable {
     }
 
     public String getDay(int d){
+        if(d > 100000){
+            d = d % 100000;
+        }
+        if(d > 10000){
+            d = d % 10000;
+        }
         if (d > 1000){
             d = d % 1000;
         }
@@ -306,8 +328,9 @@ public class DeleterController implements Initializable {
         delFileButton.setDisable(true);
     }
 
-    public void addButtonEvent(MouseEvent mouseEvent) {
+    public void addButtonEvent() {
         Row row = leftTable.getSelectionModel().getSelectedItem();
+        leftTable.requestFocus();
         if(row != null){
             rightData.add(row);
             leftData.remove(row);
@@ -315,8 +338,9 @@ public class DeleterController implements Initializable {
         }
     }
 
-    public void delButtonEvent(MouseEvent mouseEvent) {
+    public void delButtonEvent() {
         Row row = rightTable.getSelectionModel().getSelectedItem();
+        rightTable.requestFocus();
         if(row != null){
             leftData.add(row);
             rightData.remove(row);
@@ -324,8 +348,36 @@ public class DeleterController implements Initializable {
         }
     }
 
+    public void delete(MouseEvent mouseEvent) {
+        if (rightData.size() > 0){
+            for (Row r : rightData) {
+                File f = r.getFile();
+                f.delete();
+            }
+            rightData.clear();
+            counter();
+        }
+    }
+
+    public void moveToFolder(MouseEvent mouseEvent) {
+        if (rightData.size() > 0){
+            File choseRemoveCatalog = removeDirectoryChooser.showDialog(HomeWindow.getScene().getWindow());
+            if (choseRemoveCatalog != null && rightData.size() > 0){
+                for (Row r : rightData) {
+                    File f = r.getFile();
+                    if(f.renameTo(new File(choseRemoveCatalog + "/" + f.getName()))){
+                        f.delete();
+                    }
+                }
+                rightData.clear();
+                counter();
+            }
+        }
+    }
+
     public static class Row {
         private String name;
+        private File file;
         private String oName;
         private String programName;
         private Date date;
@@ -370,6 +422,14 @@ public class DeleterController implements Initializable {
 
         public void setOld(String old) {
             this.old = old;
+        }
+
+        public File getFile() {
+            return file;
+        }
+
+        public void setFile(File file) {
+            this.file = file;
         }
     }
 

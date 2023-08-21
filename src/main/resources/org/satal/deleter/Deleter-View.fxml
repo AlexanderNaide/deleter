@@ -5,6 +5,8 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
@@ -25,21 +27,65 @@
                <children>
                   <ToolBar prefHeight="60.0" prefWidth="200.0" HBox.hgrow="ALWAYS">
                     <items>
-                      <Button mnemonicParsing="false" onMouseClicked="#findCatalog" text="Выбор каталога" />
+                      <Button graphicTextGap="8.0" mnemonicParsing="false" onMouseClicked="#findCatalog" text="Выбор каталога" textAlignment="CENTER">
+                           <padding>
+                              <Insets bottom="4.0" left="8.0" right="8.0" top="4.0" />
+                           </padding>
+                           <graphic>
+                              <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../../ico/icons8-открыть-папку-48.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic></Button>
                         <Label text="Интервал сортировки:">
                            <padding>
                               <Insets left="80.0" right="20.0" />
                            </padding></Label>
-                        <ComboBox fx:id="intervalMenu" onAction="#intervalMenuAction" prefWidth="150.0" />
+                        <ComboBox fx:id="intervalMenu" onAction="#intervalMenuAction" prefWidth="150.0">
+                           <padding>
+                              <Insets bottom="2.0" left="6.0" right="6.0" top="2.0" />
+                           </padding></ComboBox>
                     </items>
                      <padding>
                         <Insets left="30.0" />
                      </padding>
                   </ToolBar>
-                  <ToolBar prefHeight="60.0" prefWidth="300.0">
+                  <ToolBar nodeOrientation="RIGHT_TO_LEFT" prefHeight="60.0" prefWidth="360.0">
                     <items>
-                      <Button mnemonicParsing="false" text="Button" />
+                        <Button contentDisplay="RIGHT" graphicTextGap="8.0" mnemonicParsing="false" onMouseClicked="#delete" text="Удалить" textAlignment="CENTER">
+                           <padding>
+                              <Insets bottom="4.0" left="8.0" right="8.0" top="4.0" />
+                           </padding>
+                           <graphic>
+                              <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../../ico/icons8-remove-properties-48.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                      <Button graphicTextGap="8.0" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" onMouseClicked="#moveToFolder" text="Переместить в папку" textAlignment="CENTER">
+                           <padding>
+                              <Insets bottom="4.0" left="8.0" right="8.0" top="4.0" />
+                           </padding>
+                           <opaqueInsets>
+                              <Insets />
+                           </opaqueInsets>
+                           <graphic>
+                              <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../../ico/icons8-copy-to-folder-48.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic></Button>
                     </items>
+                     <padding>
+                        <Insets left="20.0" />
+                     </padding>
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
                   </ToolBar>
                </children>
             </HBox>
@@ -63,15 +109,29 @@
                   <Pane fx:id="leftWindow" HBox.hgrow="ALWAYS" />
                   <VBox alignment="TOP_CENTER" prefWidth="100.0">
                      <children>
-                        <Button fx:id="addFileButton" disable="true" mnemonicParsing="false" onMouseClicked="#addButtonEvent" text="-&gt;">
+                        <Button fx:id="addFileButton" disable="true" mnemonicParsing="false" onMouseClicked="#addButtonEvent">
                            <VBox.margin>
                               <Insets top="60.0" />
                            </VBox.margin>
+                           <graphic>
+                              <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../../ico/icons8-стрелка-48.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
                         </Button>
-                        <Button fx:id="delFileButton" disable="true" mnemonicParsing="false" onMouseClicked="#delButtonEvent" text="&lt;-">
+                        <Button fx:id="delFileButton" disable="true" mnemonicParsing="false" onMouseClicked="#delButtonEvent">
                            <VBox.margin>
                               <Insets top="30.0" />
                            </VBox.margin>
+                           <graphic>
+                              <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../../ico/icons8-налево-48.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
                         </Button>
                      </children>
                      <padding>
