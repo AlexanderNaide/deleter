@@ -1,0 +1,30 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" build-on-make="true" name="deleter">
+    <output-path>$PROJECT_DIR$/out/artifacts/deleter</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="org.satal.deleter.DeleterApplication" />
+        <option name="description" value="" />
+        <option name="htmlPlaceholderId" value="" />
+        <option name="icons">
+          <JavaFxApplicationIcons>
+            <option name="linuxIcon" value="$PROJECT_DIR$/src/main/resources/org/satal/deleter/icon48.png" />
+            <option name="windowsIcon" value="$PROJECT_DIR$/src/main/resources/org/satal/deleter/ico.ico" />
+          </JavaFxApplicationIcons>
+        </option>
+        <option name="nativeBundle" value="all" />
+        <option name="title" value="Deleter" />
+        <option name="vendor" value="" />
+        <option name="version" value="1.0" />
+      </options>
+    </properties>
+    <properties id="ant-postprocessing">
+      <options enabled="true" />
+    </properties>
+    <root id="root">
+      <element id="archive" name="deleter.jar">
+        <element id="module-output" name="deleter" />
+      </element>
+    </root>
+  </artifact>
+</component>

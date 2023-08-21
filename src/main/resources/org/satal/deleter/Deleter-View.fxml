@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane fx:id="HomeWindow" minHeight="400.0" minWidth="500.0" onKeyTyped="#keyTyped" prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.satal.deleter.controllers.DeleterController">
+<AnchorPane fx:id="HomeWindow" minHeight="400.0" minWidth="500.0" onKeyTyped="#keyTyped" prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/1.8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.satal.deleter.controllers.DeleterController">
     <VBox fx:id="VBoxHomeWindow" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <HBox alignment="CENTER_LEFT" maxHeight="20.0" minHeight="20.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="20.0">
          <children>
