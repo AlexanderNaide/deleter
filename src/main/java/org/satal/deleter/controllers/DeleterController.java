@@ -7,6 +7,8 @@ import javafx.event.EventTarget;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -14,7 +16,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -83,20 +87,26 @@ public class DeleterController implements Initializable {
             if(e.getCode().toString().equals("RIGHT")){
                 addButtonEvent();
             }
+            if(e.getCode().toString().equals("ENTER")){
+                leftTableEnter();
+            }
         });
         rightTable.setOnKeyPressed((e) -> {
             if(e.getCode().toString().equals("LEFT")){
                 delButtonEvent();
             }
+            if(e.getCode().toString().equals("ENTER")){
+                rightTableEnter();
+            }
         });
         leftWindow.getChildren().add(leftTable);
         rightWindow.getChildren().add(rightTable);
         leftTable.setOnMouseClicked(e -> {
-            leftTableClick();
+            leftTableClick(e);
             offDelFileButton();
         });
         rightTable.setOnMouseClicked(e -> {
-            rightTableClick();
+            rightTableClick(e);
             offAddFileButton();
         });
 
@@ -106,6 +116,14 @@ public class DeleterController implements Initializable {
 
     public void keyTyped(KeyEvent keyEvent) {
 
+    }
+
+    public void showFile(File file){
+        try {
+            new ProcessBuilder("explorer", String.format("/open,%s", file.getPath())).start();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public void initialiseIntervals(){
@@ -306,16 +324,35 @@ public class DeleterController implements Initializable {
 //                r.setProgramName(program.toString());
     }
 
-    public void leftTableClick() {
+    public void leftTableClick(MouseEvent event) {
         Row row = leftTable.getSelectionModel().getSelectedItem();
         if(row != null){
+            if(event.getClickCount() == 2){
+                showFile(row.getFile());
+            }
             addFileButton.setDisable(false);
         }
     }
+    public void leftTableEnter() {
+        Row row = leftTable.getSelectionModel().getSelectedItem();
+        if(row != null){
+            showFile(row.getFile());
+        }
+    }
 
-    public void rightTableClick() {
+    public void rightTableEnter() {
         Row row = rightTable.getSelectionModel().getSelectedItem();
         if(row != null){
+            showFile(row.getFile());
+        }
+    }
+
+    public void rightTableClick(MouseEvent event) {
+        Row row = rightTable.getSelectionModel().getSelectedItem();
+        if(row != null){
+            if(event.getClickCount() == 2){
+                showFile(row.getFile());
+            }
             delFileButton.setDisable(false);
         }
     }
