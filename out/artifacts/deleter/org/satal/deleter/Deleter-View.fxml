@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane fx:id="HomeWindow" minHeight="400.0" minWidth="500.0" onKeyTyped="#keyTyped" prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/1.8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.satal.deleter.controllers.DeleterController">
+    <VBox fx:id="VBoxHomeWindow" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <HBox alignment="CENTER_LEFT" maxHeight="20.0" minHeight="20.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="20.0">
+         <children>
+            <Label fx:id="directoryLabel" />
+         </children>
+         <padding>
+            <Insets left="30.0" />
+         </padding></HBox>
+      <VBox prefHeight="200.0" prefWidth="100.0" VBox.vgrow="ALWAYS">
+         <children>
+            <HBox alignment="BOTTOM_LEFT" prefHeight="40.0">
+               <children>
+                  <ToolBar prefHeight="60.0" prefWidth="200.0" HBox.hgrow="ALWAYS">
+                    <items>
+                      <Button graphicTextGap="8.0" mnemonicParsing="false" onMouseClicked="#findCatalog" text="Выбор каталога" textAlignment="CENTER">
+                           <padding>
+                              <Insets bottom="4.0" left="8.0" right="8.0" top="4.0" />
+                           </padding>
+                           <graphic>
+                              <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../../ico/icons8-открыть-папку-48.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic></Button>
+                        <Label text="Интервал сортировки:">
+                           <padding>
+                              <Insets left="80.0" right="20.0" />
+                           </padding></Label>
+                        <ComboBox fx:id="intervalMenu" onAction="#intervalMenuAction" prefWidth="150.0">
+                           <padding>
+                              <Insets bottom="2.0" left="6.0" right="6.0" top="2.0" />
+                           </padding></ComboBox>
+                    </items>
+                     <padding>
+                        <Insets left="30.0" />
+                     </padding>
+                  </ToolBar>
+                  <ToolBar nodeOrientation="RIGHT_TO_LEFT" prefHeight="60.0" prefWidth="360.0">
+                    <items>
+                        <Button contentDisplay="RIGHT" graphicTextGap="8.0" mnemonicParsing="false" onMouseClicked="#delete" text="Удалить" textAlignment="CENTER">
+                           <padding>
+                              <Insets bottom="4.0" left="8.0" right="8.0" top="4.0" />
+                           </padding>
+                           <graphic>
+                              <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../../ico/icons8-remove-properties-48.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                      <Button graphicTextGap="8.0" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" onMouseClicked="#moveToFolder" text="Переместить в папку" textAlignment="CENTER">
+                           <padding>
+                              <Insets bottom="4.0" left="8.0" right="8.0" top="4.0" />
+                           </padding>
+                           <opaqueInsets>
+                              <Insets />
+                           </opaqueInsets>
+                           <graphic>
+                              <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../../ico/icons8-copy-to-folder-48.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic></Button>
+                    </items>
+                     <padding>
+                        <Insets left="20.0" />
+                     </padding>
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                  </ToolBar>
+               </children>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" maxHeight="20.0" minHeight="20.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="20.0">
+               <children>
+                  <Label fx:id="countLeft" minWidth="300.0" prefWidth="300.0">
+                     <padding>
+                        <Insets left="30.0" />
+                     </padding>
+                  </Label>
+                  <Label fx:id="countTotal" alignment="CENTER" contentDisplay="CENTER" minWidth="400.0" prefWidth="400.0" textAlignment="CENTER" />
+                  <Label fx:id="countRight" alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="300.0" prefWidth="300.0" textAlignment="RIGHT">
+                     <padding>
+                        <Insets right="30.0" />
+                     </padding>
+                  </Label>
+               </children>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+               <children>
+                  <Pane fx:id="leftWindow" HBox.hgrow="ALWAYS" />
+                  <VBox alignment="TOP_CENTER" prefWidth="100.0">
+                     <children>
+                        <Button fx:id="addFileButton" disable="true" mnemonicParsing="false" onMouseClicked="#addButtonEvent">
+                           <VBox.margin>
+                              <Insets top="60.0" />
+                           </VBox.margin>
+                           <graphic>
+                              <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../../ico/icons8-стрелка-48.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                        <Button fx:id="delFileButton" disable="true" mnemonicParsing="false" onMouseClicked="#delButtonEvent">
+                           <VBox.margin>
+                              <Insets top="30.0" />
+                           </VBox.margin>
+                           <graphic>
+                              <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../../ico/icons8-налево-48.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                     </children>
+                     <padding>
+                        <Insets bottom="60.0" />
+                     </padding></VBox>
+                  <Pane fx:id="rightWindow" HBox.hgrow="ALWAYS" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+    </VBox>
+</AnchorPane>
