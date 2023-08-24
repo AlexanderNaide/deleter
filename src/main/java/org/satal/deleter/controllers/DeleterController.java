@@ -3,12 +3,11 @@ package org.satal.deleter.controllers;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventTarget;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -16,9 +15,10 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
+import org.satal.deleter.model.CacheCatalog;
+import org.satal.deleter.model.Interval;
+import org.satal.deleter.model.Row;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -27,8 +27,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class DeleterController implements Initializable {
 
@@ -51,19 +52,30 @@ public class DeleterController implements Initializable {
     private final ObservableList<Row> leftData = FXCollections.observableArrayList();
     private final ObservableList<Row> rightData = FXCollections.observableArrayList();
     private final ObservableList<Interval> intervals = FXCollections.observableArrayList();
+    public TextField searchField;
+    public ImageView cacheIcon;
+    public ImageView loadIcon;
 
 
     private File currentDirectory;
-    private File[] currentDirectoryFiles;
     private Date currentDate;
     private DirectoryChooser directoryChooser;
     private DirectoryChooser removeDirectoryChooser;
+    private ArrayList<CacheCatalog> cache;
+    private Image loading;
+    private Image loadingDone;
+    private Image stopDns;
+    private final Object connectDns = new Object();
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         //Initialise common
         directoryChooser = new DirectoryChooser();
         removeDirectoryChooser = new DirectoryChooser();
+        loading = new Image("org/satal/deleter/loading.gif", 28, 28, false, false);
+        loadingDone = new Image("org/satal/deleter/icons8-проверено-48.png", 48, 48, false, false);
+        stopDns = new Image("org/satal/deleter/icons8-отмена-48.png", 48, 48, false, false);
 
         File temp = new File("\\\\Hp\\dnc");
         if(temp.exists() && temp.isDirectory()) {
@@ -77,7 +89,7 @@ public class DeleterController implements Initializable {
         //Initialise interval
         initialiseIntervals();
         intervalMenu.setItems(intervals);
-        intervalMenu.getSelectionModel().select(2);
+        intervalMenu.getSelectionModel().select(3);
 
 
         //Initialise tables
@@ -109,13 +121,76 @@ public class DeleterController implements Initializable {
             rightTableClick(e);
             offAddFileButton();
         });
+        cachingPrograms();
+        checkingDNS();
 
         // удобный сайт с иконками https://icons8.ru/icon/set/%D0%BF%D0%B5%D1%80%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D0%B8%D1%82%D1%8C-%D0%B2-%D1%81%D0%BF%D0%B8%D1%81%D0%BE%D0%BA/fluency
 
     }
 
+    public void cachingPrograms(){
+        new Thread(() -> {
+            if (cache == null){
+                cacheIcon.setImage(stopDns);
+            }
+            try {
+                synchronized (connectDns){
+                    connectDns.wait();
+                    cacheIcon.setImage(loading);
+                    File temp = new File("\\\\Hp\\dnc");
+                    if(temp.exists() && temp.isDirectory()) {
+                        currentDirectory = temp;
+                        setDirectoryLabel(currentDirectory.getPath());
+                        directoryChooser.setInitialDirectory(currentDirectory);
+                        ArrayList<CacheCatalog> tempCache = new ArrayList<>();
+                        File[] pages = temp.listFiles();
+                        if (pages != null && pages.length > 0){
+                            for (File page : pages) {
+                                if (page.isDirectory()){
+                                    tempCache.add(new CacheCatalog(page.getName(), page.listFiles()));
+                                }
+                            }
+                        }
+                        cache = new ArrayList<>(tempCache);
+                        cacheIcon.setImage(loadingDone);
+                    } else {
+                        cacheIcon.setImage(stopDns);
+                    }
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+    }
+
     public void keyTyped(KeyEvent keyEvent) {
 
+    }
+
+    public void stopDns(){
+        cache = null;
+        currentDirectory = null;
+        directoryChooser.setInitialDirectory(null);
+        cachingPrograms();
+    }
+
+    public void checkingDNS(){
+        new Thread(() -> {
+            while (true){
+                File temp = new File("\\\\Hp\\dnc");
+                if (temp.exists() && temp.isDirectory()){
+                    synchronized (connectDns){
+                        connectDns.notify();
+                    }
+                }
+//                connectDns = temp.exists() && temp.isDirectory();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
     }
 
     public void showFile(File file){
@@ -130,16 +205,23 @@ public class DeleterController implements Initializable {
         LocalDateTime dt = LocalDateTime.ofInstant(currentDate.toInstant(), ZoneId.systemDefault());
         Interval int3months = new Interval(Date.from(dt.minusMonths(3).atZone(ZoneId.systemDefault()).toInstant()), "3 месяца");
         Interval int1month = new Interval(Date.from(dt.minusMonths(1).atZone(ZoneId.systemDefault()).toInstant()), "1 месяц");
+        Interval int3weeks = new Interval(Date.from(dt.minusWeeks(3).atZone(ZoneId.systemDefault()).toInstant()), "3 недели");
         Interval int2weeks = new Interval(Date.from(dt.minusWeeks(2).atZone(ZoneId.systemDefault()).toInstant()), "2 недели");
         Interval int1week = new Interval(Date.from(dt.minusWeeks(1).atZone(ZoneId.systemDefault()).toInstant()), "1 неделя");
         Interval int3days = new Interval(Date.from(dt.minusDays(3).atZone(ZoneId.systemDefault()).toInstant()), "3 дня");
-        intervals.addAll(int3months, int1month, int2weeks, int1week, int3days);
+        intervals.addAll(int3months, int1month, int3weeks, int2weeks, int1week, int3days);
     }
 
     public void initialTable(TableView<Row> table, ObservableList<Row> data){
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         table.setPrefHeight(720);
         table.setPrefWidth(450);
+
+        TableColumn<Row, String> dirColumn = new TableColumn<>("Папка");
+        dirColumn.setMinWidth(60);
+        dirColumn.setPrefWidth(60);
+        dirColumn.setCellValueFactory(new PropertyValueFactory<Row, String>("dir"));
+        dirColumn.setVisible(false);
 
         TableColumn<Row, String> nameCol = new TableColumn<>("Имя файла");
         nameCol.setMinWidth(218);
@@ -174,6 +256,7 @@ public class DeleterController implements Initializable {
         oldCol.setCellValueFactory(new PropertyValueFactory<Row, String>("old"));
 
         table.setItems(data);
+        table.getColumns().add(dirColumn);
         table.getColumns().add(nameCol);
 //        table.getColumns().add(oCol);
 //        table.getColumns().add(programCol);
@@ -185,43 +268,56 @@ public class DeleterController implements Initializable {
         directoryLabel.setText(str);
     }
 
-    public void findCatalog(MouseEvent mouseEvent) throws IOException {
-        File temp = directoryChooser.showDialog(HomeWindow.getScene().getWindow());
-        if (temp != null){
-            currentDirectory = temp;
-            setDirectoryLabel(currentDirectory.getPath());
-            currentDirectoryFiles = currentDirectory.listFiles();
-            removeDirectoryChooser.setInitialDirectory(currentDirectory);
-            sortFiles();
-        }
-    }
-
-    public void sortFiles() throws IOException {
-        if (currentDirectoryFiles.length != 0){
-            leftData.clear();
-            rightData.clear();
-            BasicFileAttributes atr;
-            for (File f : currentDirectoryFiles){
-                if(f.isFile()){
-                    atr = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
-
-                    Row r = new Row();
-                    r.setName(f.getName());
-                    long oldMillis = atr.creationTime().toMillis();
-                    int oldDay = (int) ((currentDate.getTime() - oldMillis) / millInDay);
-                    Date fileDate = new Date(oldMillis);
-                    r.setDate(fileDate);
-                    r.setOld("" + oldDay + " " + getDay(oldDay));
-                    r.setFile(f);
-                    if(fileDate.before(intervalMenu.getSelectionModel().getSelectedItem().getDate())){
-                        rightData.add(r);
-                    } else {
-                        leftData.add(r);
-                    }
+    public void findCatalog(MouseEvent mouseEvent) {
+        try{
+            File temp = directoryChooser.showDialog(HomeWindow.getScene().getWindow());
+            if (temp != null){
+                loadIcon.setImage(loading);
+                searchField.setText("");
+                currentDirectory = temp;
+                setDirectoryLabel(temp.getPath());
+                removeDirectoryChooser.setInitialDirectory(temp);
+                if (cache != null){
+                    sortFiles(cache.stream().filter(c -> c.getDir().equals(temp.getName())).map(CacheCatalog::getList).findFirst().orElse(Objects.requireNonNull(temp.listFiles())));
+                } else {
+                    sortFiles(Objects.requireNonNull(temp.listFiles()));
                 }
             }
-            counter();
+        } catch (RuntimeException | IOException e){
+            stopDns();
+            findCatalog(mouseEvent);
         }
+
+    }
+
+    public void sortFiles(File[] list) throws IOException {
+        leftData.clear();
+        rightData.clear();
+        List<File> fileList = Arrays.stream(list).filter(File::isFile).collect(Collectors.toList());
+        if (fileList.size() > 0){
+            BasicFileAttributes atr;
+            for (File file : fileList) {
+                atr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+                Row row = new Row();
+                row.setName(file.getName());
+                long oldMillis = atr.creationTime().toMillis();
+                int oldDay = (int) ((currentDate.getTime() - oldMillis) / millInDay);
+                Date fileDate = new Date(oldMillis);
+                row.setDate(fileDate);
+                row.setOld("" + oldDay + " " + getDay(oldDay));
+                row.setFile(file);
+                if (leftTable.getColumns().get(0).isVisible()){
+                    row.setDir(file.getParentFile().getName());
+                }
+                if(row.getDate().before(intervalMenu.getSelectionModel().getSelectedItem().getDate())){
+                    rightData.add(row);
+                } else {
+                    leftData.add(row);
+                }
+            }
+        }
+        counter();
+        loadIcon.setImage(null);
     }
 
     public void counter(){
@@ -259,8 +355,25 @@ public class DeleterController implements Initializable {
         }
     }
 
+    public void resortFiles(){
+        try {
+            if (currentDirectory != null){
+                if (cache != null){
+                    sortFiles(cache.stream().filter(c -> c.getDir().equals(currentDirectory.getName())).map(CacheCatalog::getList).findFirst().orElse(Objects.requireNonNull(currentDirectory.listFiles())));
+                } else {
+                    sortFiles(Objects.requireNonNull(currentDirectory.listFiles()));
+                }
+            } else {
+                leftData.clear();
+                rightData.clear();
+            }
+        } catch (IOException | RuntimeException e){
+            stopDns();
+        }
+    }
+
     public void intervalMenuAction(ActionEvent actionEvent) throws IOException {
-        sortFiles();
+        resortFiles();
     }
 
     public void readFile(){
@@ -389,10 +502,13 @@ public class DeleterController implements Initializable {
         if (rightData.size() > 0){
             for (Row r : rightData) {
                 File f = r.getFile();
-                f.delete();
+                if(!f.delete()){
+                    stopDns();
+                }
             }
             rightData.clear();
             counter();
+            cachingPrograms();
         }
     }
 
@@ -403,102 +519,61 @@ public class DeleterController implements Initializable {
                 for (Row r : rightData) {
                     File f = r.getFile();
                     if(f.renameTo(new File(choseRemoveCatalog + "/" + f.getName()))){
-                        f.delete();
+                        if(!f.delete()){
+                            stopDns();
+                        }
                     }
                 }
                 rightData.clear();
                 counter();
+                cachingPrograms();
             }
         }
     }
 
-    public static class Row {
-        private String name;
-        private File file;
-        private String oName;
-        private String programName;
-        private Date date;
-        private String old;
+    private void addColumnTable(){
+        leftTable.getColumns().get(0).setVisible(true);
+        rightTable.getColumns().get(0).setVisible(true);
+    }
 
-        public String getName() {
-            return name;
-        }
+    private void delColumnTable(){
+        leftTable.getColumns().get(0).setVisible(false);
+        rightTable.getColumns().get(0).setVisible(false);
+    }
 
-        public void setName(String name) {
-            this.name = name;
-        }
+    public void onActionSearch() {
+        try {
+            if (searchField.getText().length() <= 2){
+                delColumnTable();
+                if(currentDirectory != null && currentDirectory.getName().equals("dnc")){
+                    leftData.clear();
+                    rightData.clear();
+                } else {
+                    resortFiles();
+                }
+            } else if (searchField.getText().length() > 2){
+                loadIcon.setImage(loading);
+                addColumnTable();
+                ArrayList<File> temp = new ArrayList<>();
+                String t = searchField.getText();
+                if (cache != null){
+                    for (CacheCatalog catalog : cache) {
+                        Arrays.stream(catalog.getList()).filter(f -> f.getName().contains(t)).forEach(temp::add);
+                    }
+                } else if (currentDirectory != null){
+                    Arrays.stream(Objects.requireNonNull(currentDirectory.listFiles())).filter(f -> f.getName().contains(t)).forEach(temp::add);
+                }
 
-        public Date getDate() {
-
-            return date;
-        }
-
-        public String getoName() {
-            return oName;
-        }
-
-        public void setoName(String oName) {
-            this.oName = oName;
-        }
-
-        public void setDate(Date date) {
-            this.date = date;
-        }
-
-        public String getProgramName() {
-            return programName;
-        }
-
-        public void setProgramName(String programName) {
-            this.programName = programName;
-        }
-
-        public String getOld() {
-            return old;
-        }
-
-        public void setOld(String old) {
-            this.old = old;
-        }
-
-        public File getFile() {
-            return file;
-        }
-
-        public void setFile(File file) {
-            this.file = file;
+                File[] f = new File[temp.size()];
+                temp.toArray(f);
+                sortFiles(f);
+            }
+        } catch (IOException e){
+            stopDns();
         }
     }
 
-    public static class Interval{
-
-        private Date date;
-        private String interval;
-
-        public Interval(Date date, String interval) {
-            this.date = date;
-            this.interval = interval;
-        }
-
-        public Date getDate() {
-            return date;
-        }
-
-        public void setDate(Date date) {
-            this.date = date;
-        }
-
-        public String getInterval() {
-            return interval;
-        }
-
-        public void setInterval(String interval) {
-            this.interval = interval;
-        }
-
-        @Override
-        public String toString()  {
-            return this.interval;
-        }
+    public void startCaching(MouseEvent event) {
+        cachingPrograms();
     }
 }
