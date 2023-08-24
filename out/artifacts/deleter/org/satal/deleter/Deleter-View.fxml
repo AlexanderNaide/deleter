@@ -47,7 +47,7 @@
                            <padding>
                               <Insets bottom="2.0" left="6.0" right="6.0" top="2.0" />
                            </padding></ComboBox>
-                        <TextField fx:id="searchField" onKeyReleased="#onActionSearch" prefHeight="30.0" prefWidth="185.0" />
+                        <TextField fx:id="searchField" onKeyReleased="#onActionSearch" prefHeight="30.0" prefWidth="185.0" promptText="Поиск (мин 3 символа)" />
                     </items>
                      <padding>
                         <Insets left="20.0" />

@@ -67,6 +67,8 @@ public class DeleterController implements Initializable {
     private Image stopDns;
     private final Object connectDns = new Object();
 
+    private Thread checkingProgramThread;
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -130,6 +132,7 @@ public class DeleterController implements Initializable {
 
     public void cachingPrograms(){
         new Thread(() -> {
+            System.out.println("2222");
             if (cache == null){
                 cacheIcon.setImage(stopDns);
             }
@@ -140,7 +143,7 @@ public class DeleterController implements Initializable {
                     File temp = new File("\\\\Hp\\dnc");
                     if(temp.exists() && temp.isDirectory()) {
                         currentDirectory = temp;
-                        setDirectoryLabel(currentDirectory.getPath());
+//                        setDirectoryLabel(temp.getPath());
                         directoryChooser.setInitialDirectory(currentDirectory);
                         ArrayList<CacheCatalog> tempCache = new ArrayList<>();
                         File[] pages = temp.listFiles();
@@ -277,7 +280,7 @@ public class DeleterController implements Initializable {
                 currentDirectory = temp;
                 setDirectoryLabel(temp.getPath());
                 removeDirectoryChooser.setInitialDirectory(temp);
-                if (cache != null){
+                if (cache != null && temp.getParentFile().getPath().equals("\\\\Hp\\dnc")){
                     sortFiles(cache.stream().filter(c -> c.getDir().equals(temp.getName())).map(CacheCatalog::getList).findFirst().orElse(Objects.requireNonNull(temp.listFiles())));
                 } else {
                     sortFiles(Objects.requireNonNull(temp.listFiles()));
@@ -520,6 +523,7 @@ public class DeleterController implements Initializable {
                     File f = r.getFile();
                     if(f.renameTo(new File(choseRemoveCatalog + "/" + f.getName()))){
                         if(!f.delete()){
+                            System.out.println("1111");
                             stopDns();
                         }
                     }
@@ -575,5 +579,9 @@ public class DeleterController implements Initializable {
 
     public void startCaching(MouseEvent event) {
         cachingPrograms();
+    }
+
+    public void shutdown() {
+        System.out.println("Exit");
     }
 }
