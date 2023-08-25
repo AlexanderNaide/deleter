@@ -21,7 +21,7 @@ public class DeleterApplication extends Application {
         stage.setMinWidth(400);
         stage.setMinHeight(600);
         stage.setScene(scene);
-        stage.setTitle("Satal - deleter v1.1");
+        stage.setTitle("Satal - deleter v1.2");
         stage.setResizable(false);
         stage.getIcons().add(new Image(String.valueOf((getClass().getResource("icons8-удалить-вид-48.png"))), 48, 48, false, false));
         DeleterController controller = loader.getController();
