@@ -174,9 +174,9 @@ public class DeleterView {
     }
 
     public void counter(){
-        countLeft.setText(leftData.size() + " файлов.");
-        countTotal.setText("Всего: " + (leftData.size() + rightData.size()) + " файлов.");
-        countRight.setText(rightData.size() + " файлов.");
+        countLeft.setText(leftData.size() + " " + getFile(leftData.size()));
+        countTotal.setText("Всего: " + (leftData.size() + rightData.size()) + " " + getFile(leftData.size() + rightData.size()));
+        countRight.setText(rightData.size() + " " + getFile(rightData.size()));
     }
 
     public void initialiseIntervals(){
@@ -225,6 +225,35 @@ public class DeleterView {
                 return "дня";
             } else {
                 return "дней";
+            }
+        }
+    }
+
+    public String getFile(int f){
+        if(f > 100000){
+            f = f % 100000;
+        }
+        if(f > 10000){
+            f = f % 10000;
+        }
+        if (f > 1000){
+            f = f % 1000;
+        }
+        if (f > 100){
+            f = f % 100;
+        }
+        if (f > 10 && f < 20){
+            return "файлов";
+        } else {
+            if (f > 10) {
+                f = f % 10;
+            }
+            if (f == 1){
+                return "файл";
+            } else if (f > 1 && f < 5) {
+                return "файла";
+            } else {
+                return "файлов";
             }
         }
     }
